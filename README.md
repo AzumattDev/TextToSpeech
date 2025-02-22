@@ -93,11 +93,10 @@ or [Piper TTS Voice Samples](https://rhasspy.github.io/piper-samples) to preview
 - Create a local folder for Piper files (within the mod’s directory).
 - Download the Piper Windows ZIP release and extract it.
 - Download the selected voice model and its configuration file.
-- Start the Piper process in server mode.
-- Apply Harmony patches that intercept chat and terminal messages.
+- Apply Harmony patches that intercept chat and other messages.
 
 4. **Enjoy:**  
-   As you chat or view terminal text, the mod will automatically synthesize and play speech using your local player's
+   As you chat or view text, the mod will automatically synthesize and play speech using your local player's
    AudioSource.
 
 ---
@@ -123,7 +122,9 @@ Key settings include:
           `?download=true` is automatically stripped out in the code. So do not worry about that. If you are live
           updating this value, please give it a few seconds to update, the speed is determined by your internet speed
           and the size of the language model.
+          
           ![](https://github.com/AzumattDev/TextToSpeech/blob/master/Thunderstore/model_download.png?raw=true)
+      
 - **Skip Self In Chat:**  
   If enabled, the mod will not play TTS for your own chat messages. This is useful if you want to hear others but not
   yourself.
@@ -179,8 +180,8 @@ In each case, the text is combined with the topic (or player name) and then pass
 ## Troubleshooting
 
 - **Piper Errors:**  
-  Check the mod’s log file in `BepInEx/logs` for any Piper error output. Informational messages from Piper are logged as
-  debug.  
+  Check the mod’s log file in `BepInEx/LogOutput.log` for any Piper error output. Informational messages from Piper are logged as
+  debug (a setting in BepInEx.cfg must be on to see these in the LogOutput file).  
   If you see repeated errors, ensure your internet connection was available on first launch so that all files were
   downloaded correctly.
 
@@ -208,5 +209,5 @@ Direct link to this mod icon created by Freepik - Flaticon</a>
 
 ## License
 
-This mod is released under the [MIT License](LICENSE). Please review the voice models’ licenses, as some may have
+This mod is released under the [MIT License](https://github.com/AzumattDev/TextToSpeech/blob/master/LICENSE.txt). Please review the voice models’ licenses, as some may have
 additional restrictions (should you attempt to redistribute them).
