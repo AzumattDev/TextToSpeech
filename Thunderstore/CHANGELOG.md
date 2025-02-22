@@ -1,0 +1,3 @@
+| `Version` | `Update Notes`                                                                                                                                                                                                                             |
+|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.0     | - Initial Release<br/> - Supports TTS for in-game text (runes, intro text, center screen messages, dreams, and npc text).<br/> - Automatic download and extraction of Piper and voice files.<br/> - Configurable voice model and playback. |
