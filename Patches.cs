@@ -13,6 +13,9 @@ public static class TextViewerShowTextPatch
         if (Player.m_localPlayer == null)
             return;
 
+        if (TextToSpeechPlugin.SpeakRune.Value.IsOff())
+            return;
+
         GetPlayerAudioSource(out AudioSource? playerSource);
         if (playerSource == null)
             return;
@@ -40,7 +43,7 @@ public static class TextViewerShowTextPatch
         }
 
         string ttsMessage = topic.Length > 0 ? $"{tTopic} {tText}" : tText;
-        FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), playerSource));
+        FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }
 
@@ -51,6 +54,8 @@ public static class ShowRavenMessagesChatSetNpcTextPatch
     {
         if (Player.m_localPlayer == null)
             return;
+        if (TextToSpeechPlugin.SpeakNPC.Value.IsOff())
+            return;
         GetPlayerAudioSource(out AudioSource? playerSource);
         if (playerSource == null)
             return;
@@ -59,7 +64,17 @@ public static class ShowRavenMessagesChatSetNpcTextPatch
             ? StripRichText(Localization.instance.Localize(topic) + Localization.instance.Localize(text))
             : StripRichText(Localization.instance.Localize(text));
 
-        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, playerSource, true, talker.transform.position));
+        string npcName = Utils.GetPrefabName(talker.name);
+        TextToSpeechPlugin.TextToSpeechLogger.LogInfo($"NPC Name: {npcName}");
+        string modelKey = "default";
+        if (VoiceAssignment.NpcToVoiceModel.TryGetValue(npcName, out string assignedKey))
+        {
+            modelKey = assignedKey;
+        }
+
+        // Retrieve the voice model from our manager.
+        VoiceModel chosenModel = TextToSpeechPlugin.ModelManager.GetVoiceModel(modelKey);
+        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, chosenModel, playerSource, true, talker.transform.position));
     }
 }
 
@@ -70,13 +85,14 @@ public static class MessageHudShowMessagePatch
     {
         if (Player.m_localPlayer == null || type != MessageHud.MessageType.Center)
             return;
-
+        if (TextToSpeechPlugin.CenterMessages.Value.IsOff())
+            return;
         GetPlayerAudioSource(out AudioSource? playerSource);
         if (playerSource == null)
             return;
 
         string ttsMessage = StripRichText(Localization.instance.Localize(text));
-        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, playerSource));
+        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }
 
@@ -107,12 +123,12 @@ public static class TerminalAddStringPatch
             if (filteredName == Player.m_localPlayer.GetPlayerName() && TextToSpeechPlugin.SkipSelf.Value.IsOn())
                 return;
 
-            string ttsMessage = $"{filteredName} {textType} in  chat: {text}";
-            FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), playerSource));
+            string ttsMessage = $"{filteredName} {textType} in  chat: {text}"
+            FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
         }
         else
         {
-            FireAndForget(TextToSpeechPlugin.Speak(StripRichText(text), playerSource));
+            FireAndForget(TextToSpeechPlugin.Speak(StripRichText(text), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
         }
     }
 }*/
@@ -122,6 +138,11 @@ public static class TerminalAddStringPatch
 {
     static void Postfix(string user, string text, Talker.Type type, bool timestamp)
     {
+        if (Player.m_localPlayer == null)
+            return;
+        if (TextToSpeechPlugin.SpeakChat.Value.IsOff())
+            return;
+
         GetPlayerAudioSource(out AudioSource? playerSource);
         if (playerSource == null)
             return;
@@ -141,7 +162,7 @@ public static class TerminalAddStringPatch
             return;
 
         string ttsMessage = $"{user} {textType} in  chat: {text}";
-        FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), playerSource));
+        FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }
 
@@ -155,12 +176,14 @@ public static class DreamTextsGetRandomDreamTextPatch
 
         if (Player.m_localPlayer == null)
             return;
+        if (TextToSpeechPlugin.SpeakDreams.Value.IsOff())
+            return;
 
         GetPlayerAudioSource(out AudioSource? playerSource);
         if (playerSource == null)
             return;
         string ttsMessage = StripRichText(Localization.instance.Localize(__result.m_text));
-        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, playerSource));
+        FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }
 

@@ -93,11 +93,10 @@ or [Piper TTS Voice Samples](https://rhasspy.github.io/piper-samples) to preview
 - Create a local folder for Piper files (within the mod’s directory).
 - Download the Piper Windows ZIP release and extract it.
 - Download the selected voice model and its configuration file.
-- Start the Piper process in server mode.
-- Apply Harmony patches that intercept chat and terminal messages.
+- Apply Harmony patches that intercept chat and other messages.
 
 4. **Enjoy:**  
-   As you chat or view terminal text, the mod will automatically synthesize and play speech using your local player's
+   As you chat or view text, the mod will automatically synthesize and play speech using your local player's
    AudioSource.
 
 ---
@@ -112,6 +111,8 @@ or [Azus UnOfficial Config Manager](https://thunderstore.io/c/valheim/p/Azumatt/
 
 Key settings include:
 
+- **Speaker ID:**  
+  Speaker ID for the voice model. This is usually 0 for most models. If you choose a model that has multiple speakers, you can set this to the desired speaker ID.
 - **Voice Model URL:**  
   The URLs for downloading the voice model and its configuration file can be modified if you prefer a different voice.
   The configuration file for the voice will download automatically
@@ -123,10 +124,27 @@ Key settings include:
           `?download=true` is automatically stripped out in the code. So do not worry about that. If you are live
           updating this value, please give it a few seconds to update, the speed is determined by your internet speed
           and the size of the language model.
+          
           ![](https://github.com/AzumattDev/TextToSpeech/blob/master/Thunderstore/model_download.png?raw=true)
+      
 - **Skip Self In Chat:**  
   If enabled, the mod will not play TTS for your own chat messages. This is useful if you want to hear others but not
   yourself.
+
+- **Speak Center Messages**  
+  If enabled, the mod will play TTS for center screen messages (like "Resting..." or "You don't have enough wood").
+
+- **Speak NPC Messages**  
+  If enabled, the mod will play TTS for NPC messages (like "Haldor says: ...").
+
+- **Speak Rune Messages**
+  If enabled, the mod will play TTS for rune messages and boss stones.
+
+- **Speak Chat Message**  
+  If enabled, the mod will play TTS for chat messages (like "PlayerName in chat said: [message]"). Overrides the Skip Self In Chat setting.
+
+- **Speak Dream Messages**  
+  If enabled, the mod will play TTS for dream messages (like "You dream of...").
 
 - **TTS Playback Options:**  
   The mod always plays TTS via the local player's AudioSource or a one-shot audio source on target transforms/objects.
@@ -179,8 +197,8 @@ In each case, the text is combined with the topic (or player name) and then pass
 ## Troubleshooting
 
 - **Piper Errors:**  
-  Check the mod’s log file in `BepInEx/logs` for any Piper error output. Informational messages from Piper are logged as
-  debug.  
+  Check the mod’s log file in `BepInEx/LogOutput.log` for any Piper error output. Informational messages from Piper are logged as
+  debug (a setting in BepInEx.cfg must be on to see these in the LogOutput file).  
   If you see repeated errors, ensure your internet connection was available on first launch so that all files were
   downloaded correctly.
 
@@ -208,5 +226,5 @@ Direct link to this mod icon created by Freepik - Flaticon</a>
 
 ## License
 
-This mod is released under the [MIT License](LICENSE). Please review the voice models’ licenses, as some may have
+This mod is released under the [MIT License](https://github.com/AzumattDev/TextToSpeech/blob/master/LICENSE.txt). Please review the voice models’ licenses, as some may have
 additional restrictions (should you attempt to redistribute them).

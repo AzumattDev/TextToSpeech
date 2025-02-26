@@ -23,7 +23,7 @@ namespace TextToSpeech
     public class TextToSpeechPlugin : BaseUnityPlugin
     {
         internal const string ModName = "TextToSpeech";
-        internal const string ModVersion = "1.0.0";
+        internal const string ModVersion = "1.0.1";
         internal const string Author = "Azumatt";
         private const string ModGUID = $"{Author}.{ModName}";
         private static string ConfigFileName = $"{ModGUID}.cfg";
@@ -55,6 +55,8 @@ namespace TextToSpeech
         private static string _piperExePath = string.Empty;
         private static string _voiceModelPath = string.Empty;
 
+        public static VoiceModelManager ModelManager;
+
         public enum Toggle
         {
             On = 1,
@@ -67,31 +69,45 @@ namespace TextToSpeech
             Config.SaveOnConfigSet = false;
 
             VoiceModelUrl = config("1 - General", "Voice Model URL", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_GB/alba/medium/en_GB-alba-medium.onnx", "URL for the voice model file.");
+            SpeakerID = config("1 - General", "Speaker ID", 0, "Speaker ID for the voice model. This is usually 0 for most models. If you choose a model that has multiple speakers, you can set this to the desired speaker ID.");
             SkipSelf = config("1 - Preferences", "Skip Self In Chat", Toggle.On, "Do not TTS your own messages in chat.");
-            
+            CenterMessages = config("1 - Preferences", "Speak Center Messages", Toggle.On, "Speak the messages at the center of your screen.");
+            SpeakNPC = config("1 - Preferences", "Speak NPC Messages", Toggle.On, "Speak the messages from NPCs.");
+            SpeakRune = config("1 - Preferences", "Speak Rune Messages", Toggle.On, "Speak the messages from runes.");
+            SpeakChat = config("1 - Preferences", "Speak Chat Messages", Toggle.On, "Speak the messages from chat. Overrides Skip Self In Chat setting.");
+            SpeakDreams = config("1 - Preferences", "Speak Dream Messages", Toggle.On, "Speak the messages from dreams.");
+
             _voiceModelConfigUrl = VoiceModelUrl.Value.Replace("?download=true", string.Empty) + ".json";
 
-            
+
             _modDirectory = !string.IsNullOrEmpty(Info.Location) ? Path.GetDirectoryName(Info.Location) : Environment.CurrentDirectory;
             _piperFolder = Path.Combine(_modDirectory, "Piper");
             Directory.CreateDirectory(_piperFolder);
-
-            UpdateVoiceModelPaths(); // Now piperFolder is available
-
-            VoiceModelUrl.SettingChanged += (sender, args) =>
-            {
-                UpdateVoiceModelPaths();
-                _ = EnsureVoiceModel();
-                _ = EnsureVoiceModelConfig();
-            };
-
             _piperZipPath = Path.Combine(_piperFolder, "piper_windows_amd64.zip");
             _piperExePath = Path.Combine(_piperFolder, "piper", "piper.exe");
 
-            // Continue with your other initialization tasks...
             await EnsurePiperFiles();
-            await EnsureVoiceModel();
-            await EnsureVoiceModelConfig();
+
+
+            // Now initialize the VoiceModelManager using the _piperFolder.
+            ModelManager = new VoiceModelManager(_piperFolder);
+            // Add the default voice model (using the config value).
+            ModelManager.AddOrUpdateModel(new VoiceModel("default", VoiceModelUrl.Value, SpeakerID.Value, _piperFolder));
+            // Add additional voice models for specific NPCs.
+            ModelManager.AddOrUpdateModel(new VoiceModel("Haldor", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx?download=true", 442, _piperFolder));
+            ModelManager.AddOrUpdateModel(new VoiceModel("Hildir", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx?download=true", 455, _piperFolder));
+            ModelManager.AddOrUpdateModel(new VoiceModel("Hugin", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/ryan/high/en_US-ryan-high.onnx?download=true", 0, _piperFolder));
+            ModelManager.AddOrUpdateModel(new VoiceModel("Munin", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/bryce/medium/en_US-bryce-medium.onnx?download=true", 0, _piperFolder));
+            ModelManager.AddOrUpdateModel(new VoiceModel("BogWitch", "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/sv/sv_SE/nst/medium/sv_SE-nst-medium.onnx?download=true", 0, _piperFolder));
+            // Asynchronously ensure all voice models are downloaded.
+            await ModelManager.LoadModelsAsync();
+
+            VoiceModelUrl.SettingChanged += (sender, args) =>
+            {
+                ModelManager.AddOrUpdateModel(new VoiceModel("default", VoiceModelUrl.Value, SpeakerID.Value, _piperFolder));
+                _ = ModelManager.LoadModelsAsync();
+            };
+
 
 #if RunAsServer
             StartPiperProcess();
@@ -134,35 +150,6 @@ namespace TextToSpeech
             else
             {
                 TextToSpeechLogger.LogInfo("Piper already exists.");
-            }
-        }
-
-        /// <summary>
-        /// Checks for the voice model file and downloads it if missing.
-        /// </summary>
-        private async Task EnsureVoiceModel()
-        {
-            if (!File.Exists(_voiceModelPath))
-            {
-                TextToSpeechLogger.LogInfo("Voice model not found. Downloading voice model...");
-                await DownloadFile(VoiceModelUrl.Value, _voiceModelPath);
-            }
-            else
-            {
-                TextToSpeechLogger.LogInfo("Voice model already exists.");
-            }
-        }
-
-        private async Task EnsureVoiceModelConfig()
-        {
-            if (!File.Exists(_voiceModelConfigPath))
-            {
-                TextToSpeechLogger.LogInfo("Voice model config not found. Downloading voice model config...");
-                await DownloadFile(_voiceModelConfigUrl, _voiceModelConfigPath);
-            }
-            else
-            {
-                TextToSpeechLogger.LogInfo("Voice model config already exists.");
             }
         }
 
@@ -253,16 +240,16 @@ namespace TextToSpeech
             }
         }
 #endif
-        public static async Task Speak(string text, AudioSource? targetSource = null!, bool playAtPoint = false, Vector3 position = default)
+        public static async Task Speak(string text, VoiceModel voiceModel, AudioSource? targetSource = null, bool playAtPoint = false, Vector3 position = default)
         {
             try
             {
                 string tempWavPath = Path.Combine(Path.GetTempPath(), $"piper_tts_{Guid.NewGuid()}.wav");
 
-                ProcessStartInfo psi = new()
+                ProcessStartInfo psi = new ProcessStartInfo
                 {
                     FileName = _piperExePath,
-                    Arguments = $"--model \"{_voiceModelPath}\" --model_config \"{_voiceModelConfigPath}\" --output_file \"{tempWavPath}\"",
+                    Arguments = $"--model \"{voiceModel.ModelPath}\" --model_config \"{voiceModel.ConfigPath}\" --speaker \"{voiceModel.SpeakerID}\" --output_file \"{tempWavPath}\"",
                     RedirectStandardInput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -483,7 +470,13 @@ namespace TextToSpeech
         #region ConfigOptions
 
         internal static ConfigEntry<string> VoiceModelUrl = null!;
+        internal static ConfigEntry<int> SpeakerID = null!;
         internal static ConfigEntry<Toggle> SkipSelf = null!;
+        internal static ConfigEntry<Toggle> CenterMessages = null!;
+        internal static ConfigEntry<Toggle> SpeakNPC = null!;
+        internal static ConfigEntry<Toggle> SpeakRune = null!;
+        internal static ConfigEntry<Toggle> SpeakChat = null!;
+        internal static ConfigEntry<Toggle> SpeakDreams = null!;
 
         private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description)
         {
@@ -510,6 +503,29 @@ namespace TextToSpeech
         public static bool IsOff(this TextToSpeechPlugin.Toggle toggle)
         {
             return toggle == TextToSpeechPlugin.Toggle.Off;
+        }
+    }
+
+    public class VoiceModel
+    {
+        public string Key { get; }
+
+        public string ModelUrl { get; }
+        public int SpeakerID { get; }
+
+        // Derived config URL: remove any query parameters (like "?download=true") and add ".json"
+        public string ConfigUrl => ModelUrl.Replace("?download=true", string.Empty) + ".json";
+        public string ModelPath { get; }
+        public string ConfigPath { get; }
+
+        public VoiceModel(string key, string modelUrl, int speakerID, string baseFolder)
+        {
+            Key = key;
+            ModelUrl = modelUrl;
+            SpeakerID = speakerID;
+            string fileName = Path.GetFileName(new Uri(modelUrl).LocalPath);
+            ModelPath = Path.Combine(baseFolder, fileName);
+            ConfigPath = Path.Combine(baseFolder, fileName + ".json");
         }
     }
 }

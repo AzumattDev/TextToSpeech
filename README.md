@@ -111,6 +111,8 @@ or [Azus UnOfficial Config Manager](https://thunderstore.io/c/valheim/p/Azumatt/
 
 Key settings include:
 
+- **Speaker ID:**  
+  Speaker ID for the voice model. This is usually 0 for most models. If you choose a model that has multiple speakers, you can set this to the desired speaker ID.
 - **Voice Model URL:**  
   The URLs for downloading the voice model and its configuration file can be modified if you prefer a different voice.
   The configuration file for the voice will download automatically
@@ -128,6 +130,21 @@ Key settings include:
 - **Skip Self In Chat:**  
   If enabled, the mod will not play TTS for your own chat messages. This is useful if you want to hear others but not
   yourself.
+
+- **Speak Center Messages**  
+  If enabled, the mod will play TTS for center screen messages (like "Resting..." or "You don't have enough wood").
+
+- **Speak NPC Messages**  
+  If enabled, the mod will play TTS for NPC messages (like "Haldor says: ...").
+
+- **Speak Rune Messages**
+  If enabled, the mod will play TTS for rune messages and boss stones.
+
+- **Speak Chat Message**  
+  If enabled, the mod will play TTS for chat messages (like "PlayerName in chat said: [message]"). Overrides the Skip Self In Chat setting.
+
+- **Speak Dream Messages**  
+  If enabled, the mod will play TTS for dream messages (like "You dream of...").
 
 - **TTS Playback Options:**  
   The mod always plays TTS via the local player's AudioSource or a one-shot audio source on target transforms/objects.
