@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Splatform;
 //using Splatform;
 using UnityEngine;
 using static TextToSpeech.UtilityMethods;
@@ -96,8 +97,7 @@ public static class MessageHudShowMessagePatch
     }
 }
 
-// For the current PTB, uncomment when it goes live.
-/*[HarmonyPatch(typeof(Terminal), nameof(Terminal.AddString), new System.Type[] { typeof(PlatformUserID), typeof(string), typeof(Talker.Type), typeof(bool) })]
+[HarmonyPatch(typeof(Terminal), nameof(Terminal.AddString), new System.Type[] { typeof(PlatformUserID), typeof(string), typeof(Talker.Type), typeof(bool) })]
 public static class TerminalAddStringPatch
 {
     static void Postfix(PlatformUserID user, string text, Talker.Type type, bool timestamp)
@@ -123,46 +123,13 @@ public static class TerminalAddStringPatch
             if (filteredName == Player.m_localPlayer.GetPlayerName() && TextToSpeechPlugin.SkipSelf.Value.IsOn())
                 return;
 
-            string ttsMessage = $"{filteredName} {textType} in  chat: {text}"
+            string ttsMessage = $"{filteredName} {textType} in  chat: {text}";
             FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
         }
         else
         {
             FireAndForget(TextToSpeechPlugin.Speak(StripRichText(text), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
         }
-    }
-}*/
-
-[HarmonyPatch(typeof(Terminal), nameof(Terminal.AddString), new System.Type[] { typeof(string), typeof(string), typeof(Talker.Type), typeof(bool) })]
-public static class TerminalAddStringPatch
-{
-    static void Postfix(string user, string text, Talker.Type type, bool timestamp)
-    {
-        if (Player.m_localPlayer == null)
-            return;
-        if (TextToSpeechPlugin.SpeakChat.Value.IsOff())
-            return;
-
-        GetPlayerAudioSource(out AudioSource? playerSource);
-        if (playerSource == null)
-            return;
-
-        // Switch text of "said" based on the type of message   public enum Type {Ping, Shout, Whisper, Normal}
-
-        string textType = type switch
-        {
-            Talker.Type.Ping => "pinged",
-            Talker.Type.Shout => "shouted",
-            Talker.Type.Whisper => "whispered",
-            _ => "said"
-        };
-
-
-        if (user == Player.m_localPlayer.GetPlayerName() && TextToSpeechPlugin.SkipSelf.Value.IsOn())
-            return;
-
-        string ttsMessage = $"{user} {textType} in  chat: {text}";
-        FireAndForget(TextToSpeechPlugin.Speak(StripRichText(ttsMessage), TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }
 

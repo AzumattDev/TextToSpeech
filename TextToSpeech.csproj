@@ -86,6 +86,12 @@
         <Reference Include="System.Data"/>
         <Reference Include="System.IO.Compression.FileSystem" />
         <Reference Include="System.Xml"/>
+        <Reference Include="Splatform">
+            <HintPath>$(CorlibPath)\Splatform.dll</HintPath>
+        </Reference>
+        <Reference Include="Splatform.Steam">
+            <HintPath>$(CorlibPath)\Splatform.Steam.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine">
             <HintPath>$(CorlibPath)\UnityEngine.dll</HintPath>
         </Reference>
@@ -93,7 +99,7 @@
             <HintPath>$(CorlibPath)\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.AudioModule">
-          <HintPath>..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+          <HintPath>$(CorlibPath)\UnityEngine.AudioModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
             <HintPath>$(CorlibPath)\UnityEngine.CoreModule.dll</HintPath>
