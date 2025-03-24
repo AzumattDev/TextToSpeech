@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using Splatform;
 //using Splatform;
 using UnityEngine;
@@ -82,7 +83,11 @@ public static class ShowRavenMessagesChatSetNpcTextPatch
 [HarmonyPatch(typeof(MessageHud), nameof(MessageHud.ShowMessage))]
 public static class MessageHudShowMessagePatch
 {
-    static void Postfix(MessageHud __instance, MessageHud.MessageType type, string text)
+    // Debounce threshold (in seconds)
+    private const float DebounceTime = 1.5f;
+    private static readonly Dictionary<string, float> _lastMessageTimes = new Dictionary<string, float>();
+
+    static void Postfix(MessageHud __instance, MessageHud.MessageType type, string text, int amount)
     {
         if (Player.m_localPlayer == null || type != MessageHud.MessageType.Center)
             return;
@@ -93,6 +98,16 @@ public static class MessageHudShowMessagePatch
             return;
 
         string ttsMessage = StripRichText(Localization.instance.Localize(text));
+        float now = Time.time;
+
+        // If we've spoken this message recently, skip speaking it again.
+        if (_lastMessageTimes.TryGetValue(ttsMessage, out float lastTime))
+        {
+            if (now - lastTime < DebounceTime)
+                return;
+        }
+
+        _lastMessageTimes[ttsMessage] = now;
         FireAndForget(TextToSpeechPlugin.Speak(ttsMessage, TextToSpeechPlugin.ModelManager.GetVoiceModel("default"), playerSource));
     }
 }

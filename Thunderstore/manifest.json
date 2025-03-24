@@ -1,6 +1,6 @@
 {
   "name": "TextToSpeech",
-  "version_number": "1.0.2",
+  "version_number": "1.0.3",
   "website_url": "https://discord.gg/pdHgy6Bsng",
   "description": "TextToSpeech brings in-game text to life with Piper, a high-quality mostly offline TTS engine. It converts chat, runes, intro text, center screen messages, dreams, and NPC dialogue into speech.",
   "dependencies": [
